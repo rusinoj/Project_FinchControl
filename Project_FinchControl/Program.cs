@@ -9,8 +9,7 @@ namespace Project_FinchControl
     // **************************************************
     //
     // Title: Finch Control - Menu Starter
-    // Description: Starter solution with the helper methods,
-    //              opening and closing screens, and the menu
+    // Description: Program to control finch robot actions through use of menus.
     // Application Type: Console
     // Author: Rusinowski, Jack
     // Dated Created: 6/6/2021
