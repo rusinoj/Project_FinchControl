@@ -499,7 +499,6 @@ namespace Project_FinchControl
             double dataPointFrequency = 0;
             Console.CursorVisible = true;
             double[] temperatures = null;
-            double[] temperaturesF = null;
             double[] rightLights = null;
             double[] leftLights = null;
             bool quitDataRecorderMenu = false;
@@ -612,8 +611,8 @@ namespace Project_FinchControl
                     sum += leftLights[i];
                 }
                 avg = sum / leftLights.Length;
-                Console.WriteLine("The Sum is : " + sum);
-                Console.WriteLine("The Average is : " + avg);
+                Console.WriteLine("The sum is : " + sum);
+                Console.WriteLine("The average is : " + avg);
             }
 
             else
@@ -659,8 +658,8 @@ namespace Project_FinchControl
                     sum += rightLights[i];
                 }
                 avg = sum / rightLights.Length;
-                Console.WriteLine("The Sum is : " + sum);
-                Console.WriteLine("The Average is : " + avg);
+                Console.WriteLine("The sum is : " + sum);
+                Console.WriteLine("The average is : " + avg);
             }
 
             else
