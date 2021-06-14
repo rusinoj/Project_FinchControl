@@ -10,10 +10,11 @@ namespace Project_FinchControl
     //
     // Title: Finch Control - Menu Starter
     // Description: Program to control finch robot actions through use of menus.
+    //              Fred can display talents and record temperature and light.
     // Application Type: Console
     // Author: Rusinowski, Jack
     // Dated Created: 6/6/2021
-    // Last Modified: 6/6/2021
+    // Last Modified: 6/13/2021
     //
     // **************************************************
 
@@ -26,7 +27,7 @@ namespace Project_FinchControl
         static void Main(string[] args)
         {
             SetTheme();
-
+            
             DisplayWelcomeScreen();
             DisplayMenuScreen();
             DisplayClosingScreen();
@@ -491,6 +492,373 @@ namespace Project_FinchControl
 
         #endregion
 
+        #region DATA RECORDER
+        private static void DataRecorderDisplayMenuScreen(Finch fred)
+        {
+            int numberOfDataPoints = 0;
+            double dataPointFrequency = 0;
+            Console.CursorVisible = true;
+            double[] temperatures = null;
+            double[] temperaturesF = null;
+            double[] rightLights = null;
+            double[] leftLights = null;
+            bool quitDataRecorderMenu = false;
+            string menuChoice;
+
+            do
+            {
+                DisplayScreenHeader("Data Recorder Menu");
+
+                //
+                // get user menu choice
+                //
+                Console.WriteLine("\ta) Number of Data Points");
+                Console.WriteLine("\tb) Frequency of Data Points");
+                Console.WriteLine("\tc) Get Temperature Data");
+                Console.WriteLine("\td) Get Right Light Data");
+                Console.WriteLine("\te) Get Left Light Data");
+                Console.WriteLine("\tf) Show Temperature Data");
+                Console.WriteLine("\tg) Show Right Light Data");
+                Console.WriteLine("\th) Show Left Light Data");
+                Console.WriteLine("\tq) Main Menu");
+                Console.Write("\t\tEnter Choice:");
+                menuChoice = Console.ReadLine().ToLower();
+                
+                //
+                // process user menu choice
+                //
+                switch (menuChoice)
+                {
+                    case "a":
+                        numberOfDataPoints = DataRecorderDisplayGetNumberOfDataPoints();
+                        break;
+
+                    case "b":
+                        dataPointFrequency = DataRecorderDisplayGetNumberOfDataPointFrequency();
+                        break;
+
+                    case "c":
+                        temperatures = DataRecorderDisplayGetDataTemps(numberOfDataPoints, dataPointFrequency, fred);
+                        break;
+
+                    case "d":
+                        rightLights = DataRecorderDisplayGetDataRightLights(numberOfDataPoints, dataPointFrequency, fred);
+                        break;
+
+                    case "e":
+                        leftLights = DataRecorderDisplayGetDataLeftLights(numberOfDataPoints, dataPointFrequency, fred);
+                        break;
+
+                    case "f":
+                        DataRecorderDisplayDataTemps(temperatures);
+                        break;
+
+                    case "g":
+                        DataRecorderDisplayDataRightLights(rightLights);
+                        break;
+
+                    case "h":
+                        DataRecorderDisplayDataLeftLights(leftLights);
+                        break;
+
+                    case "q":
+                        quitDataRecorderMenu = true;
+                        break;
+
+                    default:
+                        Console.WriteLine();
+                        Console.WriteLine("\tPlease enter a letter for the menu choice.");
+                        DisplayContinuePrompt();
+                        break;
+                }
+
+            } while (!quitDataRecorderMenu);
+
+        }
+
+        private static void DataRecorderDisplayDataLeftLights(double[] leftLights)
+        {
+            string userResponse;
+
+            DisplayScreenHeader("Show Left Light Data");
+
+            Console.WriteLine("Recording #".PadLeft(15) + "Left Light".PadLeft(15));
+            Console.WriteLine("---------".PadLeft(15) + "---------".PadLeft(15));
+
+            for (int index = 0; index < leftLights.Length; index++)
+            {
+                Console.WriteLine(
+                (index + 1).ToString().PadLeft(15) +
+                 leftLights[index].ToString("n2").PadLeft(15));
+            }
+            DisplayContinuePrompt();
+
+            Console.WriteLine("\tNow, would you like to average this sensor's values?");
+            userResponse = Console.ReadLine().ToLower();
+            while (userResponse != "yes" && userResponse != "no")
+            {
+                Console.WriteLine("\tIt appears you did not give a valid response. Please try again.");
+
+                Console.WriteLine("\tWould you like to average this sensor's values?");
+                userResponse = Console.ReadLine().ToLower();
+            }
+
+            if (userResponse == "yes")
+            {
+                double sum = 0, avg = 0;
+
+                for (int i = 0; i < leftLights.Length; i++)
+                {
+                    sum += leftLights[i];
+                }
+                avg = sum / leftLights.Length;
+                Console.WriteLine("The Sum is : " + sum);
+                Console.WriteLine("The Average is : " + avg);
+            }
+
+            else
+            {
+                Console.WriteLine("I see. Not everyone cares for that information.");
+            }
+            DisplayContinuePrompt();
+        }
+
+        private static void DataRecorderDisplayDataRightLights(double[] rightLights)
+        {
+            string userResponse;
+
+            DisplayScreenHeader("Show Right Light Data");
+
+            Console.WriteLine("Recording #".PadLeft(15) + "Right Light".PadLeft(15));
+            Console.WriteLine("---------".PadLeft(15) + "---------".PadLeft(15));
+
+            for (int index = 0; index < rightLights.Length; index++)
+            {
+                Console.WriteLine(
+                (index + 1).ToString().PadLeft(15) +
+                 rightLights[index].ToString("n2").PadLeft(15));
+            }
+            DisplayContinuePrompt();
+
+            Console.WriteLine("\tNow, would you like to average this sensor's values?");
+            userResponse = Console.ReadLine().ToLower();
+            while (userResponse != "yes" && userResponse != "no")
+            {
+                Console.WriteLine("\tIt appears you did not give a valid response. Please try again.");
+
+                Console.WriteLine("\tWould you like to average this sensor's values?");
+                userResponse = Console.ReadLine().ToLower();
+            }
+
+            if (userResponse == "yes")
+            {
+                double sum = 0, avg = 0;
+                
+                for (int i = 0; i < rightLights.Length; i++)
+                {
+                    sum += rightLights[i];
+                }
+                avg = sum / rightLights.Length;
+                Console.WriteLine("The Sum is : " + sum);
+                Console.WriteLine("The Average is : " + avg);
+            }
+
+            else
+            {
+                Console.WriteLine("I see. Not everyone cares for that information.");
+            }
+            DisplayContinuePrompt();
+        }
+
+        static double[] DataRecorderDisplayGetDataLeftLights(int numberOfDataPoints, double dataPointFrequency, Finch fred)
+        {
+            double[] leftLights = new double[numberOfDataPoints];
+
+            DisplayScreenHeader("Get Left Light Data");
+
+            Console.WriteLine($"Number of data points: {numberOfDataPoints} points");
+            Console.WriteLine($"Data point frequency: {dataPointFrequency} seconds");
+            Console.WriteLine();
+            Console.WriteLine("Fred the Finch robot is ready to begin recording the left light sensor data.");
+            DisplayContinuePrompt();
+
+            for (int index = 0; index < numberOfDataPoints; index++)
+            {
+                leftLights[index] = fred.getTemperature();
+                Console.WriteLine($"\tReading {index + 1}: {leftLights[index].ToString("n2")}");
+                int waitInSeconds = (int)(dataPointFrequency * 1000);
+                fred.wait(waitInSeconds);
+            }
+
+            DisplayContinuePrompt();
+            Console.WriteLine("The data readings are complete.");
+            return leftLights;
+        }
+
+        static double[] DataRecorderDisplayGetDataRightLights(int numberOfDataPoints, double dataPointFrequency, Finch fred)
+        {
+            double[] rightLights = new double[numberOfDataPoints];
+
+            DisplayScreenHeader("Get Right Light Data");
+
+            Console.WriteLine($"Number of data points: {numberOfDataPoints} points");
+            Console.WriteLine($"Data point frequency: {dataPointFrequency} seconds");
+            Console.WriteLine();
+            Console.WriteLine("Fred the Finch robot is ready to begin recording the right light sensor data.");
+            DisplayContinuePrompt();
+
+            for (int index = 0; index < numberOfDataPoints; index++)
+            {
+                rightLights[index] = fred.getTemperature();
+                Console.WriteLine($"\tReading {index + 1}: {rightLights[index].ToString("n2")}");
+                int waitInSeconds = (int)(dataPointFrequency * 1000);
+                fred.wait(waitInSeconds);
+            }
+
+            DisplayContinuePrompt();
+            Console.WriteLine("The data readings are complete.");
+            return rightLights;
+        }
+
+        static void DataRecorderDisplayDataTemps(double[] temperatures)
+       {
+           DisplayScreenHeader("Show Data");
+
+           Console.WriteLine("Recording #".PadLeft(15) + "Temp".PadLeft(15));
+           Console.WriteLine("---------".PadLeft(15) + "---------".PadLeft(15));
+
+           for (int index = 0; index < temperatures.Length; index++)
+           {
+               Console.WriteLine(
+               (index + 1).ToString().PadLeft(15) +
+                temperatures[index].ToString("n2").PadLeft(15));
+           }
+                        DisplayContinuePrompt();
+        }
+
+        /// <summary>
+        /// get data points from robot
+        /// </summary>
+        /// <returns>data points</returns>
+        static double[] DataRecorderDisplayGetDataTemps(int numberOfDataPoints, double dataPointFrequency, Finch fred)
+        {
+           double[] temperatures = new double[numberOfDataPoints];
+
+           DisplayScreenHeader("Get Data");
+
+           Console.WriteLine($"Number of data points: {numberOfDataPoints} points");
+           Console.WriteLine($"Data point frequency: {dataPointFrequency} seconds");
+           Console.WriteLine();
+           Console.WriteLine("Fred the Finch robot is ready to begin recording the temperature data.");
+           DisplayContinuePrompt();
+
+           for (int index = 0; index < numberOfDataPoints; index++)
+           {
+                temperatures[index] = fred.getTemperature();
+                Console.WriteLine($"\tReading {index + 1}: {temperatures[index].ToString("n2")}");
+                int waitInSeconds = (int)(dataPointFrequency * 1000);
+                fred.wait(waitInSeconds);
+           }
+
+           DisplayContinuePrompt();
+           Console.WriteLine("The data readings are complete.");
+            return temperatures;
+        }
+
+        /// <summary>
+        /// get frequency of data points from user
+        /// </summary>
+        /// <returns>frequency of data points</returns>
+        static double DataRecorderDisplayGetNumberOfDataPointFrequency()
+        {
+            double DataPointFrequency;
+            string userResponse;
+            bool validResponse = false;
+
+
+            DisplayScreenHeader("Data Point Frequency");
+            do
+            {
+                Console.WriteLine("Frequency of data points in seconds: ");
+                userResponse = Console.ReadLine();              
+                //
+                // test response for a number and provide feedback
+                //
+                if (double.TryParse(userResponse, out DataPointFrequency))
+                {
+                    //
+                    // test response for a positive number and provide feedback
+                    //
+                    if (DataPointFrequency <= 0)
+                    {
+                        Console.WriteLine("I appears you did not give a valid response. Please enter a positive number.");
+                    }
+                    else
+                    {
+                        validResponse = true;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("It appears that you did not provide a number.");
+                }
+
+            } while (!validResponse);
+            
+            Console.WriteLine($"The data readings will occur every {DataPointFrequency} seconds.");
+            DisplayContinuePrompt();
+
+            return DataPointFrequency;
+        }
+
+        /// <summary>
+        /// Get number of data points from user
+        /// </summary>
+        /// <returns>number of data points</returns>
+        static int DataRecorderDisplayGetNumberOfDataPoints()
+        {
+            int numberOfDataPoints;
+            string userResponse;
+            bool validResponse = false;
+
+            DisplayScreenHeader("Number of Data Points");
+
+            do
+            {
+                Console.WriteLine("Number of data points: ");
+                userResponse = Console.ReadLine();
+                //
+                // test response for a number and provide feedback
+                //
+                if (int.TryParse(userResponse, out numberOfDataPoints))
+                {
+                    //
+                    // test response for a positive number and provide feedback
+                    //
+                    if (numberOfDataPoints <= 0)
+                    {
+                        Console.WriteLine("I appears you did not give a valid response. Please enter a positive number.");
+                    }
+                    else
+                    {
+                        validResponse = true;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("It appears that you did not provide a number.");
+                }
+
+            } while (!validResponse);
+                       
+            Console.WriteLine($"The temperature will be measured {numberOfDataPoints} times.");
+            DisplayContinuePrompt();
+
+            return numberOfDataPoints;
+        }
+
+        #endregion
+
         #region FINCH ROBOT MANAGEMENT
 
         /// <summary>
@@ -640,16 +1008,7 @@ namespace Project_FinchControl
 
             DisplayContinuePrompt();
         }
-
-        private static void DataRecorderDisplayMenuScreen(Finch fred)
-        {
-            DisplayScreenHeader("Data Recorder");
-            Console.WriteLine("This module is currently under development.");
-            Console.WriteLine("Thank you for your patience as the guy writing this figures out what he's doing.");
-
-            DisplayContinuePrompt();
-        }
-
         #endregion
+
     }
 }
