@@ -11,10 +11,11 @@ namespace Project_FinchControl
     // Title: Finch Control - Menu Starter
     // Description: Program to control finch robot actions through use of menus.
     //              Fred can display talents and record temperature and light.
+    //              He can also set a light or temperature based alarm.
     // Application Type: Console
     // Author: Rusinowski, Jack
     // Dated Created: 6/6/2021
-    // Last Modified: 6/13/2021
+    // Last Modified: 6/20/2021
     //
     // **************************************************
 
@@ -858,6 +859,324 @@ namespace Project_FinchControl
 
         #endregion
 
+        #region LIGHT ALARM
+
+        static void AlarmSystemDisplayMenuScreen(Finch fred)
+        {
+            Console.CursorVisible = true;
+
+            bool quitLightAlarmMenu = false;
+            string menuChoice;
+
+            string sensorsToMonitor = "";
+            string rangeType = "";
+            int minMaxTresholdValue = 0;
+            int timeToMonitor = 0;
+
+            do
+            {
+                DisplayScreenHeader("Light Alarm Menu");
+
+                //
+                // get user menu choice
+                //
+                Console.WriteLine("\ta) Set Sensors to Monitor");
+                Console.WriteLine("\tb) Set Range Type");
+                Console.WriteLine("\tc) Set Minimum/Maximum Threshold Value");
+                Console.WriteLine("\td) Set Time to Monitor");
+                Console.WriteLine("\te) Set Alarm");
+                Console.WriteLine("\tq) Main Menu");
+                Console.Write("\t\tEnter Choice:");
+                menuChoice = Console.ReadLine().ToLower();
+
+                //
+                // process user menu choice
+                //
+                switch (menuChoice)
+                {
+                    case "a":
+                        sensorsToMonitor = LightAlarmDisplaySetSensorsToMonitor(fred);
+                        break;
+
+                    case "b":
+                        rangeType = LightAlarmDisplaySetRangeType();
+                        break;
+
+                    case "c":
+                        minMaxTresholdValue = LightAlarmSetMinMaxThresholdValue(rangeType, fred);
+                        break;
+
+                    case "d":
+                        timeToMonitor = LightAlarmSetTimeToMonitor();
+                        break;
+
+                    case "e":
+                        LightAlarmSetAlarm(fred, sensorsToMonitor, rangeType, minMaxTresholdValue, timeToMonitor);
+                        break;
+
+                    case "q":
+                        quitLightAlarmMenu = true;
+                        break;
+
+                    default:
+                        Console.WriteLine();
+                        Console.WriteLine("\tPlease enter a letter for the menu choice.");
+                        DisplayContinuePrompt();
+                        break;
+                }
+
+            } while (!quitLightAlarmMenu);
+
+
+
+
+        }
+
+        static void LightAlarmSetAlarm(Finch fred, string sensorsToMonitor, string rangeType, int minMaxTresholdValue, int timeToMonitor)
+        {
+            int secondsElapsed = 0;
+            bool thresholdExceeded = false;
+            double currentLightSensorValue = 0;
+            DisplayScreenHeader("Set Alarm");
+            Console.WriteLine();
+            Console.WriteLine($"Sensors to Monitor: {sensorsToMonitor}");
+            Console.WriteLine($"Range Type: {rangeType}");
+            Console.WriteLine($"Min/Max Threshold Value: {minMaxTresholdValue}");
+            Console.WriteLine($"Time to Monitor: {timeToMonitor}");
+            Console.WriteLine();
+            DisplayContinuePrompt();
+            
+            while ((secondsElapsed < timeToMonitor) && !thresholdExceeded)
+            {
+                switch (sensorsToMonitor)
+                {
+                    case "left":
+                        currentLightSensorValue = fred.getLeftLightSensor();
+                        break;
+
+                    case "right":
+                        currentLightSensorValue = fred.getRightLightSensor();
+                        break;
+
+                    case "both":
+                        currentLightSensorValue = (fred.getRightLightSensor() + fred.getLeftLightSensor()) / 2;
+                        break;
+
+                    case "temperature":
+                        currentLightSensorValue = (fred.getTemperature());
+                        break;
+                }
+
+                switch (rangeType)
+                {
+                    case "minimum":
+                        if (currentLightSensorValue < minMaxTresholdValue)
+                        {
+                            thresholdExceeded = true;
+                        }
+                        break;
+
+                    case "maximum":
+                        if (currentLightSensorValue > minMaxTresholdValue)
+                        {
+                            thresholdExceeded = true;
+                        }
+                        break;
+
+                }
+                fred.wait(1000);
+                secondsElapsed++;
+            }
+
+            if (thresholdExceeded)
+            {
+                fred.noteOn(400);
+                fred.wait(500);
+                fred.noteOff();
+                Console.WriteLine($"The {rangeType} threshold value of {minMaxTresholdValue} was exceeded by the current sensor value of {currentLightSensorValue}");
+            }
+            else
+            {
+                Console.WriteLine($"The {rangeType} threshold value of {minMaxTresholdValue} was not exceeded.");
+            }
+
+            DisplayContinuePrompt();
+        }
+
+        static int LightAlarmSetTimeToMonitor()
+        {
+            int timeToMonitor;
+            string userResponse;
+            bool validResponse = false;
+            DisplayScreenHeader("Time to Monitor");
+            Console.WriteLine();
+            //prompt for and validate value
+            //get value, validate, echo, convert to int, and return value
+            do
+            {
+                Console.WriteLine($"Enter the time to monitor in seconds:");
+                userResponse = Console.ReadLine();
+                // test response for a number and provide feedback
+                if (int.TryParse(userResponse, out timeToMonitor))
+                {
+                    // test response for a positive number and provide feedback
+                    if (timeToMonitor <= 0)
+                    {
+                        Console.WriteLine("I appears you did not give a valid response. Please enter a positive number.");
+                    }
+                    else
+                    {
+                        validResponse = true;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("It appears that you did not provide a number.");
+                }
+
+            } while (!validResponse);
+
+            //echo value
+            Console.WriteLine($"Fred will monitor for {timeToMonitor} seconds.");
+            DisplayContinuePrompt();
+            return timeToMonitor;
+        }
+
+        static int LightAlarmSetMinMaxThresholdValue(string rangeType, Finch fred)
+        {
+            int minMaxThresholdValue;
+            string userResponse;
+            bool validResponse = false;
+            DisplayScreenHeader("Minimum/Maximum Threshold Value");
+            //prompt user
+            Console.WriteLine($"Left light sensor ambient value: {fred.getLeftLightSensor()}");
+            Console.WriteLine($"Right light sensor ambient value: {fred.getRightLightSensor()}");
+            Console.WriteLine($"Temperature sensor ambient value: {fred.getTemperature()}");
+            Console.WriteLine();      
+            
+            //get value, validate, echo, convert to int, and return value
+            do
+            {
+                Console.WriteLine($"Enter the desired {rangeType} sensor value:");
+                userResponse = Console.ReadLine();
+                // test response for a number and provide feedback
+                if (int.TryParse(userResponse, out minMaxThresholdValue))
+                {
+                    // test response for a positive number and provide feedback
+                    if (minMaxThresholdValue <= 0)
+                    {
+                        Console.WriteLine("I appears you did not give a valid response. Please enter a positive number.");
+                    }
+                    else
+                    {
+                        validResponse = true;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("It appears that you did not provide a number.");
+                }
+
+            } while (!validResponse);
+
+            Console.WriteLine($"The {rangeType} sensor value is set to {minMaxThresholdValue}.");
+            DisplayContinuePrompt();
+            return minMaxThresholdValue;
+        }
+        static string LightAlarmDisplaySetRangeType()
+        {
+            string rangeType;
+            //display header
+            DisplayScreenHeader("Range Type");
+            //prompt user
+            Console.Write("Select the range type, {minimum, maximum}:");
+            rangeType = Console.ReadLine().ToLower();
+
+            while (rangeType != "minimum" && rangeType != "maximum")
+            {
+                Console.WriteLine("I appears you did not give a valid response. Please try again.");
+
+                Console.WriteLine("Select therange type, {minimum, maximum}:");
+                rangeType = Console.ReadLine().ToLower();
+            }
+                        
+            // process user response            
+            if (rangeType == "minimum")
+            {
+                Console.WriteLine($"Fred's range type is now set to {rangeType}.");
+            }
+            else if (rangeType == "maximum")
+            {
+                Console.WriteLine($"Fred's range type is now set to {rangeType}.");
+            }
+            else
+            {
+                Console.WriteLine($"Please set Fred's range type.");
+            }
+            
+            DisplayContinuePrompt();
+
+            return rangeType;
+        }
+
+        static string LightAlarmDisplaySetSensorsToMonitor(Finch fred)
+        {
+            string sensorsToMonitor;
+
+            DisplayScreenHeader("Sensors to Monitor");
+            //prompt user
+            Console.WriteLine($"Left light sensor ambient value: {fred.getLeftLightSensor()}");
+            Console.WriteLine($"Right light sensor ambient value: {fred.getRightLightSensor()}");
+            Console.WriteLine($"Temperature sensor ambient value: {fred.getTemperature()}");
+            Console.WriteLine();
+            Console.Write("Select the sensors to be monitored, {left, right, both, or temperature}:");
+            //validate and echo response
+            sensorsToMonitor = Console.ReadLine().ToLower();
+            
+            while (sensorsToMonitor != "left" && sensorsToMonitor != "right" && sensorsToMonitor != "both" && sensorsToMonitor != "temperature")
+            {
+                Console.WriteLine("I appears you did not give a valid response. Please try again.");
+
+                Console.WriteLine("Select the sensors to be monitored, {left, right, both, or temperature}:");
+                sensorsToMonitor = Console.ReadLine().ToLower();
+            }
+
+            //
+            // process user response
+            //
+            if (sensorsToMonitor == "left")
+            {
+                Console.WriteLine($"Fred will now monitor the {sensorsToMonitor} sensor.");
+            }
+            else if (sensorsToMonitor == "right")
+            {
+                Console.WriteLine($"Fred will now monitor the {sensorsToMonitor} sensor.");
+            }
+            else if (sensorsToMonitor == "both")
+            {
+                Console.WriteLine($"Fred will now monitor {sensorsToMonitor} sensors.");
+            }
+            else if (sensorsToMonitor == "temperature")
+            {
+                Console.WriteLine($"Fred will now monitor the {sensorsToMonitor} sensor.");
+            }
+            else
+            {
+                Console.WriteLine("Fred needs to know what sensors to use.");
+            }
+
+            
+
+            DisplayMenuPrompt("Light Alarm");
+
+
+            return sensorsToMonitor;
+        }
+
+
+
+        #endregion
+
         #region FINCH ROBOT MANAGEMENT
 
         /// <summary>
@@ -999,15 +1318,7 @@ namespace Project_FinchControl
             DisplayContinuePrompt();
         }
 
-        private static void AlarmSystemDisplayMenuScreen(Finch fred)
-        {
-            DisplayScreenHeader("Alarm System");
-            Console.WriteLine("This module is currently under development.");
-            Console.WriteLine("Thank you for your patience as the guy writing this figures out what he's doing.");
-
-            DisplayContinuePrompt();
-        }
         #endregion
-
+         
     }
 }
