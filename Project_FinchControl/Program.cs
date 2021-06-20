@@ -993,7 +993,7 @@ namespace Project_FinchControl
                 fred.noteOn(400);
                 fred.wait(500);
                 fred.noteOff();
-                Console.WriteLine($"The {rangeType} threshold value of {minMaxTresholdValue} was exceeded by the current sensor value of {currentLightSensorValue}");
+                Console.WriteLine($"The {rangeType} threshold value of {minMaxTresholdValue} was exceeded by the current sensor value of {currentLightSensorValue}.");
             }
             else
             {
@@ -1154,7 +1154,7 @@ namespace Project_FinchControl
             }
             else if (sensorsToMonitor == "both")
             {
-                Console.WriteLine($"Fred will now monitor {sensorsToMonitor} sensors.");
+                Console.WriteLine($"Fred will now monitor {sensorsToMonitor} light sensors.");
             }
             else if (sensorsToMonitor == "temperature")
             {
