@@ -1458,7 +1458,7 @@ namespace Project_FinchControl
                 userResponse = Console.ReadLine();
                 if (double.TryParse(userResponse, out commandParameters.waitSeconds))
                 {
-                    if (commandParameters.waitSeconds >= 0 && commandParameters.waitSeconds <= 10)
+                    if (commandParameters.waitSeconds >= 1 && commandParameters.waitSeconds <= 10)
                     {
                         validResponse = true; 
                     }
