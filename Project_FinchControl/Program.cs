@@ -5,6 +5,22 @@ using FinchAPI;
 
 namespace Project_FinchControl
 {
+    
+    // User Commands
+    public enum Command
+    {
+        NONE,
+        MOVEFORWARD,
+        MOVEBACKWARD,
+        STOPMOTORS,
+        WAIT,
+        TURNRIGHT,
+        TURNLEFT,
+        LEDON,
+        LEDOFF,
+        GETTEMPERATURE,
+        DONE
+    }
 
     // **************************************************
     //
@@ -1176,6 +1192,293 @@ namespace Project_FinchControl
 
 
         #endregion
+        
+        #region USER PROGRAMMING
+        static void UserProgrammingDisplayMenuScreen(Finch fred)
+        {
+            string menuChoice;
+            bool quitUserProgrammingMenu = false;
+
+            //
+            // tuple (basket) to store all three command parameters 
+            //
+            (int motorSpeed, int ledBrightness, double waitSeconds) commandParameters;
+            commandParameters.motorSpeed = 0;
+            commandParameters.ledBrightness = 0;
+            commandParameters.waitSeconds = 0;
+
+            // Declare List of enum 
+
+            List<Command> commands = new List<Command>();
+
+
+
+            do
+            {
+                // display header
+                DisplayScreenHeader("User Programming Menu");
+
+                //
+                // display and get user menu choice
+                //
+                Console.WriteLine("\ta) Set Command Parameters");
+                Console.WriteLine("\tb) Add Commands");
+                Console.WriteLine("\tc) View Commands");
+                Console.WriteLine("\td) Execute Commands");
+                Console.WriteLine("\tq) Quit");
+                Console.Write("\t\tEnter Choice:");
+                menuChoice = Console.ReadLine().ToLower();
+
+                //
+                // process user menu choice
+                //
+                switch (menuChoice)
+                {
+                    case "a":
+                        commandParameters = UserProgrammingDisplayGetCommandParameters();
+                        break;
+
+                    case "b":
+                        UserProgrammingDisplayGetFinchCommands(commands);
+                        break;
+
+                    case "c":
+                        UserProgrammingDisplayFinchCommands(commands);
+                        break;
+
+                    case "d":
+                        UserProgrammingDisplayExecuteFinchCommands(fred, commands, commandParameters);
+                        break;
+
+                    case "q":
+                        quitUserProgrammingMenu = true;
+                        break;
+
+                    default:
+                        Console.WriteLine();
+                        Console.WriteLine("\tPlease enter a letter for the menu choice.");
+                        DisplayContinuePrompt();
+                        break;
+                }
+
+            } while (!quitUserProgrammingMenu);
+
+
+        }
+
+        static void UserProgrammingDisplayExecuteFinchCommands(Finch fred, List<Command> commands, 
+            (int motorSpeed, int ledBrightness, double waitSeconds) commandParameters)
+        {
+            int motorSpeed = commandParameters.motorSpeed;
+            int ledBrightness = commandParameters.ledBrightness;
+            int waitMilliSeconds = (int)(commandParameters.waitSeconds * 1000);
+            string commandFeedback = "";
+            const int TURNING_MOTOR_SPEED = 100;
+
+            //display header
+            DisplayScreenHeader("Execute Commands");
+
+            Console.WriteLine("Fred will now execute the listed commands.");
+            DisplayContinuePrompt();
+            foreach (Command command in commands)
+            {
+                switch (command)
+                {
+                    case Command.NONE:
+                        break;
+
+                    case Command.MOVEFORWARD:
+                        fred.setMotors(motorSpeed, motorSpeed);
+                        commandFeedback = Command.MOVEFORWARD.ToString();
+                        break;
+
+                    case Command.MOVEBACKWARD:
+                        fred.setMotors(-motorSpeed, -motorSpeed);
+                        commandFeedback = Command.MOVEBACKWARD.ToString();
+                        break;
+
+                    case Command.STOPMOTORS:
+                        fred.setMotors(0, 0);
+                        commandFeedback = Command.STOPMOTORS.ToString();
+                        break;
+
+                    case Command.WAIT:
+                        fred.wait(waitMilliSeconds);
+                        commandFeedback = Command.WAIT.ToString();
+                        break;
+
+                    case Command.GETTEMPERATURE:
+                        commandFeedback = $"Temperature: {fred.getTemperature().ToString("n2")}";
+                        break;
+
+                    case Command.TURNRIGHT:
+                        fred.setMotors(TURNING_MOTOR_SPEED, -TURNING_MOTOR_SPEED);
+                        commandFeedback = Command.TURNRIGHT.ToString();
+                        break;
+
+                    case Command.TURNLEFT:
+                        fred.setMotors(-TURNING_MOTOR_SPEED, TURNING_MOTOR_SPEED);
+                        commandFeedback = Command.TURNLEFT.ToString();
+                        break;
+
+                    case Command.LEDON:
+                        fred.setLED(ledBrightness, ledBrightness, ledBrightness);
+                        commandFeedback = Command.LEDON.ToString();
+                        break;
+
+                    case Command.LEDOFF:
+                        fred.setLED(0, 0, 0);
+                        commandFeedback = Command.LEDOFF.ToString();
+                        break;
+
+                    case Command.DONE:
+                        commandFeedback = Command.DONE.ToString();
+                        break;
+
+                }
+
+                Console.WriteLine($"{commandFeedback}");
+            }
+
+            DisplayMenuPrompt("User Programming");
+        }
+
+        static void UserProgrammingDisplayFinchCommands(List<Command> commands)
+        {
+            //header
+            DisplayScreenHeader("View Commands");
+            //display stored commands
+            foreach (Command command in commands)
+            {
+                Console.WriteLine($"{command}");
+            }
+
+            DisplayMenuPrompt("User Programming");
+        }
+
+        static void UserProgrammingDisplayGetFinchCommands(List<Command> commands)
+        {
+            Command command = Command.NONE;
+
+            //header
+            DisplayScreenHeader("Add Commands");
+            //instructions
+
+            Console.WriteLine("List of All Commands:");
+            Console.WriteLine();
+            Console.WriteLine("none, moveforward, movebackward, stopmotors, wait, turnright,\n turnleft, ledon, ledoff, gettemperature, done");
+
+            Console.WriteLine();
+            //loop to prompt, validate, add to list
+            while (command != Command.DONE)
+            {
+                Console.WriteLine("Enter Command: ");
+                if (Enum.TryParse(Console.ReadLine().ToUpper(), out command))
+                {
+                    commands.Add(command);
+                }
+                else
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("Please enter a valid command from the approved list.");
+                    Console.WriteLine();
+                }
+            }
+            DisplayMenuPrompt("User Programming");
+        }
+
+        static (int motorSpeed, int ledBrightness, double waitSeconds) UserProgrammingDisplayGetCommandParameters()
+        {
+            (int motorSpeed, int ledBrightness, double waitSeconds) commandParameters;
+            string userResponse;
+            bool validResponse = false;
+            DisplayScreenHeader("Enter Command Parameters");
+            //
+            //prompt, get, validate user response
+            //
+            do
+            {
+                Console.WriteLine("Please Enter Motor Speed (1-255): ");
+                userResponse = Console.ReadLine();
+                if (int.TryParse(userResponse, out commandParameters.motorSpeed))
+                {
+                    if (commandParameters.motorSpeed < 1 && commandParameters.motorSpeed > 255)
+                    {
+                        Console.WriteLine("I appears you did not give a valid response. Please enter an integer within the valid range.");
+                    }
+                    else
+                    {
+                        validResponse = true;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("It appears that you did not provide a number.");
+                }
+            } while (!validResponse);
+            //
+            // process user response
+            //
+            Console.WriteLine($"Motor speed now set to {commandParameters.motorSpeed}.");
+            //
+            //prompt, get, validate user response
+            //
+            do
+            {
+                Console.WriteLine("Please Enter LED Brightness (1-255): ");
+                userResponse = Console.ReadLine();
+                if (int.TryParse(userResponse, out commandParameters.ledBrightness))
+                {
+                    if (commandParameters.ledBrightness < 1 && commandParameters.ledBrightness > 255)
+                    {
+                        Console.WriteLine("I appears you did not give a valid response. Please enter an integer within the valid range.");
+                    }
+                    else
+                    {
+                        validResponse = true;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("It appears that you did not provide a number.");
+                }
+            } while (!validResponse);
+            //
+            // process user response
+            //
+            Console.WriteLine($"LED brightness now set to {commandParameters.ledBrightness}.");
+            //
+            //prompt, get, validate user response
+            //
+            do
+            {
+                Console.WriteLine("Please Enter Wait Time in Seconds (1-10): ");
+                userResponse = Console.ReadLine();
+                if (double.TryParse(userResponse, out commandParameters.waitSeconds))
+                {
+                    if (commandParameters.waitSeconds < 1 && commandParameters.waitSeconds > 10)
+                    {
+                        Console.WriteLine("I appears you did not give a valid response. Please enter an integer within the valid range.");
+                    }
+                    else
+                    {
+                        validResponse = true;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("It appears that you did not provide a number.");
+                }
+            } while (!validResponse);
+            //
+            // process user response
+            //
+            Console.WriteLine($"Wait time now set to {commandParameters.waitSeconds}.");
+            DisplayMenuPrompt("User Programming");
+            return commandParameters;
+        }
+
+        #endregion
 
         #region FINCH ROBOT MANAGEMENT
 
@@ -1308,15 +1611,6 @@ namespace Project_FinchControl
         #endregion
 
         #region CONSTRUCTION
-
-        private static void UserProgrammingDisplayMenuScreen(Finch fred)
-        {
-            DisplayScreenHeader("User Programming");
-            Console.WriteLine("This module is currently under development.");
-            Console.WriteLine("Thank you for your patience as the guy writing this figures out what he's doing.");
-
-            DisplayContinuePrompt();
-        }
 
         #endregion
          
