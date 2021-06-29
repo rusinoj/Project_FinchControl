@@ -1402,13 +1402,13 @@ namespace Project_FinchControl
                 userResponse = Console.ReadLine();
                 if (int.TryParse(userResponse, out commandParameters.motorSpeed))
                 {
-                    if (commandParameters.motorSpeed < 1 && commandParameters.motorSpeed > 255)
+                    if (commandParameters.motorSpeed >= 1 && commandParameters.motorSpeed <= 255)
                     {
-                        Console.WriteLine("I appears you did not give a valid response. Please enter an integer within the valid range.");
+                        validResponse = true; 
                     }
                     else
                     {
-                        validResponse = true;
+                        Console.WriteLine("I appears you did not give a valid response. Please enter an integer within the valid range.");
                     }
                 }
                 else
@@ -1420,6 +1420,7 @@ namespace Project_FinchControl
             // process user response
             //
             Console.WriteLine($"Motor speed now set to {commandParameters.motorSpeed}.");
+            validResponse = false;
             //
             //prompt, get, validate user response
             //
@@ -1429,13 +1430,13 @@ namespace Project_FinchControl
                 userResponse = Console.ReadLine();
                 if (int.TryParse(userResponse, out commandParameters.ledBrightness))
                 {
-                    if (commandParameters.ledBrightness < 1 && commandParameters.ledBrightness > 255)
+                    if (commandParameters.ledBrightness >= 1 && commandParameters.ledBrightness <= 255)
                     {
-                        Console.WriteLine("I appears you did not give a valid response. Please enter an integer within the valid range.");
+                        validResponse = true; 
                     }
                     else
                     {
-                        validResponse = true;
+                        Console.WriteLine("I appears you did not give a valid response. Please enter an integer within the valid range.");
                     }
                 }
                 else
@@ -1447,6 +1448,7 @@ namespace Project_FinchControl
             // process user response
             //
             Console.WriteLine($"LED brightness now set to {commandParameters.ledBrightness}.");
+            validResponse = false;
             //
             //prompt, get, validate user response
             //
@@ -1456,13 +1458,13 @@ namespace Project_FinchControl
                 userResponse = Console.ReadLine();
                 if (double.TryParse(userResponse, out commandParameters.waitSeconds))
                 {
-                    if (commandParameters.waitSeconds < 1 && commandParameters.waitSeconds > 10)
+                    if (commandParameters.waitSeconds >= 0 && commandParameters.waitSeconds <= 10)
                     {
-                        Console.WriteLine("I appears you did not give a valid response. Please enter an integer within the valid range.");
+                        validResponse = true; 
                     }
                     else
                     {
-                        validResponse = true;
+                        Console.WriteLine("I appears you did not give a valid response. Please enter an integer within the valid range.");
                     }
                 }
                 else
