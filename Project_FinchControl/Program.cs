@@ -31,7 +31,7 @@ namespace Project_FinchControl
     // Application Type: Console
     // Author: Rusinowski, Jack
     // Dated Created: 6/6/2021
-    // Last Modified: 6/20/2021
+    // Last Modified: 7/4/2021
     //
     // **************************************************
 
@@ -44,7 +44,6 @@ namespace Project_FinchControl
         static void Main(string[] args)
         {
             SetTheme();
-            
             DisplayWelcomeScreen();
             DisplayMenuScreen();
             DisplayClosingScreen();
@@ -53,11 +52,7 @@ namespace Project_FinchControl
         /// <summary>
         /// setup the console theme
         /// </summary>
-        static void SetTheme()
-        {
-            Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.BackgroundColor = ConsoleColor.DarkCyan;
-        }
+        
 
         /// <summary>
         /// *****************************************************************
@@ -85,7 +80,8 @@ namespace Project_FinchControl
                 Console.WriteLine("\tc) Data Recorder");
                 Console.WriteLine("\td) Alarm System");
                 Console.WriteLine("\te) User Programming");
-                Console.WriteLine("\tf) Disconnect Finch Robot");
+                Console.WriteLine("\tf) Set Theme");
+                Console.WriteLine("\tg) Disconnect Finch Robot");
                 Console.WriteLine("\tq) Quit");
                 Console.Write("\t\tEnter Choice:");
                 menuChoice = Console.ReadLine().ToLower();
@@ -116,6 +112,10 @@ namespace Project_FinchControl
                         break;
 
                     case "f":
+                        SetTheme();
+                        break;
+
+                    case "g":
                         DisplayDisconnectFinchRobot(fred);
                         break;
 
@@ -133,6 +133,105 @@ namespace Project_FinchControl
 
             } while (!quitApplication);
         }
+
+        #region SET THEME
+        static void SetTheme()
+        {
+            (ConsoleColor foregroundColor, ConsoleColor backgroundColor) themeColors;
+            bool themeChosen = false;
+
+            //
+            // set current theme from data
+            //
+            themeColors = ReadThemeData();
+            Console.ForegroundColor = themeColors.foregroundColor;
+            Console.BackgroundColor = themeColors.backgroundColor;
+            Console.Clear();
+            DisplayScreenHeader("Set Theme");
+
+            Console.WriteLine($"\tCurrent foreground color: {Console.ForegroundColor}");
+            Console.WriteLine($"\tCurrent background color: {Console.BackgroundColor}");
+            Console.WriteLine();
+
+            Console.Write("\tWould you like to change the current theme? (Yes or No): ");
+            if (Console.ReadLine().ToLower() == "yes")
+            {
+                do
+                {
+                    themeColors.foregroundColor = GetConsoleColorFromUser("foreground");
+                    themeColors.backgroundColor = GetConsoleColorFromUser("background");
+
+                    //
+                    // set new theme
+                    //
+                    Console.ForegroundColor = themeColors.foregroundColor;
+                    Console.BackgroundColor = themeColors.backgroundColor;
+                    Console.Clear();
+                    DisplayScreenHeader("Set Application Theme");
+                    Console.WriteLine($"\tNew foreground color: {Console.ForegroundColor}");
+                    Console.WriteLine($"\tNew background color: {Console.BackgroundColor}");
+
+                    Console.WriteLine();
+                    Console.Write("\tIs this the theme you would like?");
+                    if (Console.ReadLine().ToLower() == "yes")
+                    {
+                        themeChosen = true;
+                        WriteThemeData(themeColors.foregroundColor, themeColors.backgroundColor);
+                    }
+
+                } while (!themeChosen);
+            }
+            DisplayContinuePrompt();
+        }
+
+        private static (ConsoleColor foregroundColor, ConsoleColor backgroundColor) ReadThemeData()
+        {
+            string dataPath = @"Data/Theme.txt";
+            string[] themeColors;
+
+            ConsoleColor foregroundColor;
+            ConsoleColor backgroundColor;
+
+            themeColors = File.ReadAllLines(dataPath);
+
+            Enum.TryParse(themeColors[0], true, out foregroundColor);
+            Enum.TryParse(themeColors[1], true, out backgroundColor);
+
+            return (foregroundColor, backgroundColor);
+        }
+
+        static void WriteThemeData(ConsoleColor foregroundColor, ConsoleColor backgroundColor)
+        {
+            string dataPath = @"Data/Theme.txt";
+
+            File.WriteAllText(dataPath, foregroundColor.ToString() + "\n");
+            File.AppendAllText(dataPath, backgroundColor.ToString());
+        }
+
+        static ConsoleColor GetConsoleColorFromUser(string color)
+        {
+            ConsoleColor consoleColor;
+            bool validConsoleColor;
+
+            do
+            {
+                Console.Write($"\tEnter a value for the {color}:");
+                validConsoleColor = Enum.TryParse(Console.ReadLine(), true, out consoleColor);
+
+                if (!validConsoleColor)
+                {
+                    Console.WriteLine("\n\tIt appears you did not provide a valid console color. Please try again.\n");
+                }
+                else
+                {
+                    validConsoleColor = true;
+                }
+
+            } while (!validConsoleColor);
+
+            return consoleColor;
+        }
+        #endregion
 
         #region TALENT SHOW
 
@@ -1551,7 +1650,6 @@ namespace Project_FinchControl
         static void DisplayWelcomeScreen()
         {
             Console.CursorVisible = false;
-
             Console.Clear();
             Console.WriteLine();
             Console.WriteLine("\t\tFinch Control");
@@ -1609,10 +1707,6 @@ namespace Project_FinchControl
             Console.WriteLine("\t\t" + headerText);
             Console.WriteLine();
         }
-
-        #endregion
-
-        #region CONSTRUCTION
 
         #endregion
          
