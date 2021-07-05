@@ -184,7 +184,7 @@ namespace Project_FinchControl
             DisplayContinuePrompt();
         }
 
-        private static (ConsoleColor foregroundColor, ConsoleColor backgroundColor) ReadThemeData()
+        static (ConsoleColor foregroundColor, ConsoleColor backgroundColor) ReadThemeData()
         {
             string dataPath = @"Data/Theme.txt";
             string[] themeColors;
